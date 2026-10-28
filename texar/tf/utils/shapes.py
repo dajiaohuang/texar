@@ -229,12 +229,13 @@ def _mask_sequences_py(sequence,
     rank = sequence.ndim
     if rank < 2:
         raise ValueError("`sequence` must be 2D or higher order.")
+    if time_major:
+        sequence = np.transpose(
+            sequence, axes=[1, 0] + list(range(2, rank)))
+
     batch_size = sequence.shape[0]
     max_time = sequence.shape[1]
     dtype = dtype or sequence.dtype
-
-    if time_major:
-        sequence = np.transpose(sequence, axes=[1, 0, 2])
 
     steps = np.tile(np.arange(max_time), [batch_size, 1])
     mask = np.asarray(steps < sequence_length[:, None], dtype=dtype)
@@ -244,7 +245,8 @@ def _mask_sequences_py(sequence,
     sequence = sequence * mask
 
     if time_major:
-        sequence = np.transpose(sequence, axes=[1, 0, 2])
+        sequence = np.transpose(
+            sequence, axes=[1, 0] + list(range(2, rank)))
 
     return sequence
 

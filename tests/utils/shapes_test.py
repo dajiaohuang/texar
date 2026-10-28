@@ -26,6 +26,19 @@ class ShapesTest(tf.test.TestCase):
         seq_sum = np.sum(masked_seq, axis=(1, 2))
         np.testing.assert_array_equal(seq_sum, seq_length * 3)
 
+    def test_mask_sequences_time_major_rank_four(self):
+        """Tests masking a time-major sequence with multiple feature axes."""
+        seq = np.ones([4, 3, 2, 2], dtype=np.int32)
+        seq_length = np.array([3, 2, 1], dtype=np.int32)
+
+        masked_seq = shapes.mask_sequences(seq, seq_length, time_major=True)
+        expected = np.ones_like(seq)
+        for batch_index, length in enumerate(seq_length):
+            expected[length:, batch_index, :, :] = 0
+
+        self.assertEqual(masked_seq.shape, seq.shape)
+        np.testing.assert_array_equal(masked_seq, expected)
+
     def test_reduce_with_weights(self):
         """Tests :func:`texar.tf.utils.shapes.reduce_with_weights`
         """
